@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'main_screen.dart';
-
+String email = "";
 void main() {
   runApp(MaterialApp(
     title: 'Runwith',
@@ -94,10 +94,6 @@ class SignInButton extends StatefulWidget {
 
 class SignInButtonState extends State<SignInButton> {
   Future<void> _handleSignIn() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const Main()),
-    );
     try {
       GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: ['email'],
@@ -108,11 +104,14 @@ class SignInButtonState extends State<SignInButton> {
         return;
       }
       // 로그인 성공 후 페이지 이동
+      email = googleUser.email;
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const Main()),
+        MaterialPageRoute(builder: (context) => Main(data:googleUser.photoUrl, name: googleUser.displayName,)),
       );
-      print("로그인 성공: ${googleUser.email}");
+      print("로그인 성공: ${googleUser.email}"
+          "${googleUser.displayName}"
+          "${googleUser.photoUrl}");
     } catch (e) {
       print("로그인 오류: $e");
     }

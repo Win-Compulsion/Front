@@ -500,7 +500,7 @@ class _SettingState extends State<Setting> {
               if (index == 0) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => Main()),
+                  MaterialPageRoute(builder: (context) => Main(data: dataAll,name: nameAll,)),
                 );
               }
             },

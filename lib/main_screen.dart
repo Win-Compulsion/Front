@@ -1,12 +1,19 @@
 import "package:flutter/material.dart";
 import 'setting.dart';
+import 'package:flutter_image/flutter_image.dart';
+String nameAll = "";
+String dataAll = "";
+
 
 class Main extends StatelessWidget {
-  const Main({super.key});
-
+  final String? data;
+  final String? name;
+  Main({super.key, required this.data, required this.name});
   @override
 
   Widget build(BuildContext context) {
+    String dataConvert = data ?? "";
+    String nameConvert = name ?? "닉네임";
     Size screenSize = MediaQuery.of(context).size;
     double screenWidth = screenSize.width;
     double screenHeight = screenSize.height;
@@ -16,6 +23,8 @@ class Main extends StatelessWidget {
     int selectedIndex = 0;
 
     void onItemTapped(int index) {
+      nameAll = nameConvert;
+      dataAll = dataConvert;
       if (index == 2) {
         Navigator.push(
           context,
@@ -285,10 +294,14 @@ class Main extends StatelessWidget {
                       Positioned(
                         left: 3,
                         top: 0,
-                        child: SizedBox(
-                          width: 37,
-                          height: 37,
-                          child: Image.asset("assets/person.png")
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                            child: SizedBox(
+                              width: 37,
+                              height: 37,
+                              child: Image(image: NetworkImage(dataConvert)
+                              )
+                            )
                         ),
                       ),
                       Positioned(
@@ -321,7 +334,7 @@ class Main extends StatelessWidget {
                           width: 28,
                           height: 9,
                           child: Text(
-                            '닉네임',
+                            nameConvert,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.black,
@@ -559,7 +572,7 @@ class Main extends StatelessWidget {
               ),
             ],
             currentIndex: selectedIndex,
-            onTap: onItemTapped,
+            onTap: onItemTapped
           ),
         ),
       ),
