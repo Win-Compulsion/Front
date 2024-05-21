@@ -12,6 +12,20 @@ class Main extends StatelessWidget {
     double screenHeight = screenSize.height;
 
     final PageController pageController = PageController(initialPage: 0);
+
+    int selectedIndex = 0;
+
+    void onItemTapped(int index) {
+      if (index == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const Setting()),
+        );
+      } else {
+        // Handle other navigation items here
+      }
+    }
+
     return MaterialApp(
 
       home: Scaffold(
@@ -19,7 +33,7 @@ class Main extends StatelessWidget {
         Container(
 
           width: screenWidth,
-          height: screenHeight,
+          height: screenHeight - 90,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(),
           child: Stack(
@@ -29,13 +43,13 @@ class Main extends StatelessWidget {
                 top: 0,
                 child: Container(
                   width: screenWidth,
-                  height: screenHeight,
+                  height: screenHeight - 90,
                   decoration: BoxDecoration(color: Color(0xFFFBFAFA)),
                 ),
               ),
               Positioned(
-                left: screenWidth / 2,
-                top: 408,
+                left: screenWidth / 2 - 240,
+                top: 400,
                 child: SizedBox(
 
                   width: 475,
@@ -111,13 +125,6 @@ class Main extends StatelessWidget {
                 left: screenWidth / 2 - 156 ,
                 top: 346,
                 child: InkWell(
-                  onTap: (){
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Setting())
-                    );
-                    print("버튼 클릭");
-                  },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -531,32 +538,31 @@ class Main extends StatelessWidget {
           ),
         ),
       ],),
-      bottomNavigationBar: ClipRRect(
-
-        borderRadius: BorderRadius.all(Radius.circular(30.0)
+        bottomNavigationBar: ClipRRect(
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(30.0),topRight: Radius.circular(30.0)),
+          child: BottomNavigationBar(
+            selectedIconTheme: IconThemeData(color: Colors.black),
+            unselectedIconTheme: IconThemeData(color: Colors.grey),
+            backgroundColor: Color(0xFFD9D9D9),
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: '홈',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.directions_run),
+                label: '러닝',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: '설정',
+              ),
+            ],
+            currentIndex: selectedIndex,
+            onTap: onItemTapped,
+          ),
         ),
-        child:BottomNavigationBar(
-          selectedIconTheme: IconThemeData(color: Colors.black), // 선택된 아이콘 스타일
-          unselectedIconTheme: IconThemeData(color: Colors.grey),
-        backgroundColor: Colors.blue,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '홈',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.directions_run),
-            label: '러닝',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '설정',
-
-          ),
-        ],
-          ),
-        ),
-      ));
+      ),
+    );
   }
-
 }
