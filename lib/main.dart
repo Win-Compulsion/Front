@@ -100,7 +100,6 @@ class SignInButtonState extends State<SignInButton> {
     );
     try {
       GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: "911406389421-pmhcvhhsmgjgt7cot2kp9megbfhtfr89.apps.googleusercontent.com", // 클라이언트 ID 추가
         scopes: ['email'],
       );
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
