@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'main_screen.dart';
 
 class Setting extends StatefulWidget {
-  const Setting({Key? key}) : super(key: key);
+  Setting({super.key});
 
   @override
   _SettingState createState() => _SettingState();
 }
 
 class _SettingState extends State<Setting> {
-  bool _isDarkTheme = false; // 다크 테마 여부를 나타내는 변수
+
+  final bool _isDarkTheme = isDarkTheme; // 다크 테마 여부를 나타내는 변수
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +21,10 @@ class _SettingState extends State<Setting> {
     double screenHeight = screenSize.height;
 
     return MaterialApp(
+      theme: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
       home: Scaffold(
-        body: ListView(
+        body: Theme(
+        data: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),child: ListView(
           children: [
             Container(
               width: screenWidth,
@@ -42,7 +47,7 @@ class _SettingState extends State<Setting> {
                     top: 107,
                     child: Container(
                       width: 320,
-                      height: 582,
+                      height: 400,
                       decoration: ShapeDecoration(
                         color: Color(0xFFD9D9D9),
                         shape: RoundedRectangleBorder(
@@ -194,20 +199,12 @@ class _SettingState extends State<Setting> {
                     left: screenWidth / 2 - 158,
                     top: 158,
                     child: Container(
-                      width: 318,
+                      width: 317,
                       height: 53,
                       decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
                     ),
                   ),
-                  Positioned(
-                    left: screenWidth / 2 - 158,
-                    top: 212,
-                    child: Container(
-                      width: 318,
-                      height: 53,
-                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
-                    ),
-                  ),
+
                   Positioned(
                     left: screenWidth / 2 - 154,
                     top: 170,
@@ -238,24 +235,10 @@ class _SettingState extends State<Setting> {
                       ),
                     ),
                   ),
+
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 224,
-                    child: Text(
-                      '테마',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontFamily: 'Oswald',
-                        fontWeight: FontWeight.w400,
-                        height: 0,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 - 154,
-                    top: 265,
+                    top: 225,
                     child: Text(
                       '권한 설정',
                       textAlign: TextAlign.center,
@@ -270,25 +253,41 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 158,
-                    top: 303,
-                    child: Container(
-                      width: 318,
-                      height: 53,
-                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                    top: 263,
+                    child: GestureDetector(
+                      onTap: () async {
+                        // 알림 권한 요청 다이얼로그 표시
+                        PermissionStatus status = await Permission.notification.request();
+                        if (status != PermissionStatus.granted) {
+                          // 사용자가 알림 권한을 거부한 경우
+                          // 필요에 따라 추가 작업 수행
+                        }
+                      },
+                      child: Container(
+                        width: 317,
+                        height: 53,
+                        decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                      ),
                     ),
                   ),
                   Positioned(
                     left: screenWidth / 2 - 158,
-                    top: 357,
-                    child: Container(
-                      width: 318,
-                      height: 53,
-                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                    top: 317,
+                    child: GestureDetector(
+                      onTap: () async {
+                        // 위치 권한 확인
+                        await Geolocator.openAppSettings();
+                      },
+                      child: Container(
+                        width: 317,
+                        height: 53,
+                        decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                      ),
                     ),
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 315,
+                    top: 275,
                     child: Text(
                       '알림',
                       textAlign: TextAlign.center,
@@ -303,7 +302,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 369,
+                    top: 329,
                     child: Text(
                       '위치',
                       textAlign: TextAlign.center,
@@ -318,7 +317,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 410,
+                    top: 370,
                     child: Text(
                       '기타',
                       textAlign: TextAlign.center,
@@ -333,64 +332,16 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 158,
-                    top: 448,
+                    top: 408,
                     child: Container(
-                      width: 318,
-                      height: 53,
-                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 - 158,
-                    top: 502,
-                    child: Container(
-                      width: 318,
-                      height: 53,
-                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 - 158,
-                    top: 556,
-                    child: Container(
-                      width: 318,
+                      width: 317,
                       height: 53,
                       decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
                     ),
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 460,
-                    child: Text(
-                      '도움말(FAQ)',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontFamily: 'Oswald',
-                        fontWeight: FontWeight.w400,
-                        height: 0,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 - 154,
-                    top: 514,
-                    child: Text(
-                      '로그아웃',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontFamily: 'Oswald',
-                        fontWeight: FontWeight.w400,
-                        height: 0,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 - 154,
-                    top: 568,
+                    top: 418,
                     child: Text(
                       '버전',
                       textAlign: TextAlign.center,
@@ -405,7 +356,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 + 90,
-                    top: 568,
+                    top: 418,
                     child: Text(
                       'v1.2.1',
                       textAlign: TextAlign.center,
@@ -420,7 +371,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 + 120,
-                    top: 514,
+                    top: 329,
                     child: SizedBox(
                       width: 30,
                       height: 30,
@@ -429,53 +380,18 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 + 120,
-                    top: 460,
+                    top: 275,
                     child: SizedBox(
                       width: 30,
                       height: 30,
                       child: Image.asset("assets/forward.png"),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 + 120,
-                    top: 369,
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: Image.asset("assets/forward.png"),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 + 120,
-                    top: 315,
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: Image.asset("assets/forward.png"),
-                    ),
-                  ),
-                  Positioned(
-                    left: screenWidth / 2 + 90,
-                    top: 215,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Switch(
-                          value: _isDarkTheme,
-                          onChanged: (value) {
-                            setState(() {
-                              _isDarkTheme = value;
-                            });
-                          },
-                        ),
-                      ],
                     ),
                   ),
                 ],
               ),
             ),
           ],
-        ),
+        ),),
         bottomNavigationBar: ClipRRect(
           borderRadius: BorderRadius.only(topLeft: Radius.circular(30.0),topRight: Radius.circular(30.0)),
           child: BottomNavigationBar(

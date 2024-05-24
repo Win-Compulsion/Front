@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 import 'main_screen.dart';
+
 String email = "";
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await _initNotiSetting(); //local Notifcation 초기 설정
   runApp(MaterialApp(
     title: 'Runwith',
     theme: ThemeData(
@@ -12,7 +20,25 @@ void main() {
     home: MyApp(),
   ));
 }
+Future<void> _initNotiSetting() async {
+  //Notification 플로그인 객체 생성
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+  //안드로이드 초기 설정
+  final AndroidInitializationSettings initSettingsAndroid =
+  AndroidInitializationSettings('@mipmap/ic_launcher');
+  //Notification에 위에서 설정한 안드로이드, IOS 초기 설정 값 삽입
+  final InitializationSettings initSettings = InitializationSettings(
+    android: initSettingsAndroid,
+  );
+  await flutterLocalNotificationsPlugin.initialize(
+    initSettings,
+  );
+  //Notification 초기 설정
+  //onSelectNotification 옵션을 넣어서 메세지를 누르면 작동되는 콜백 함수를 생성 할 수 있다.(안써도됨)
+  //안쓰게되면 해당 노티 클릭시 앱을 그냥 실행한다.
+  //await flutterLocalNotificationsPlugin.initialize(initSettings,onSelectNotification:[콜백] );
+}
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -103,11 +129,22 @@ class SignInButtonState extends State<SignInButton> {
         // 사용자가 로그인을 취소함
         return;
       }
+      PermissionStatus status = await Permission.notification.request();
+      if (status != PermissionStatus.granted) {
+        // 사용자가 알림 권한을 거부한 경우
+        return;
+      }
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // 사용자가 위치 권한을 거부함
+        return;
+      }
+
       // 로그인 성공 후 페이지 이동
       email = googleUser.email;
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Main(data:googleUser.photoUrl, name: googleUser.displayName,)),
+        MaterialPageRoute(builder: (context) => Main(data:googleUser.photoUrl, name: googleUser.displayName)),
       );
       print("로그인 성공: ${googleUser.email}"
           "${googleUser.displayName}"
