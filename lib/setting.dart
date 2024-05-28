@@ -257,12 +257,9 @@ class _SettingState extends State<Setting> {
                     child: GestureDetector(
                       onTap: () async {
                         // 알림 권한 요청 다이얼로그 표시
-                        PermissionStatus status = await Permission.notification.request();
-                        if (status != PermissionStatus.granted) {
-                          // 사용자가 알림 권한을 거부한 경우
-                          // 필요에 따라 추가 작업 수행
+                        await Geolocator.openAppSettings();// 필요에 따라 추가 작업 수행
                         }
-                      },
+                      ,
                       child: Container(
                         width: 317,
                         height: 53,
