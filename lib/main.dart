@@ -3,14 +3,15 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 
 import 'main_screen.dart';
 
 String email = "";
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await _initNotiSetting(); //local Notifcation 초기 설정
+  await _initNotiSetting(); // Local Notification 초기 설정
   runApp(MaterialApp(
     title: 'Runwith',
     theme: ThemeData(
@@ -20,25 +21,27 @@ void main() async{
     home: MyApp(),
   ));
 }
+
 Future<void> _initNotiSetting() async {
-  //Notification 플로그인 객체 생성
+  // Notification 플러그인 객체 생성
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  //안드로이드 초기 설정
+  // 안드로이드 초기 설정
   final AndroidInitializationSettings initSettingsAndroid =
   AndroidInitializationSettings('@mipmap/ic_launcher');
-  //Notification에 위에서 설정한 안드로이드, IOS 초기 설정 값 삽입
+  // Notification에 위에서 설정한 안드로이드, IOS 초기 설정 값 삽입
   final InitializationSettings initSettings = InitializationSettings(
     android: initSettingsAndroid,
   );
   await flutterLocalNotificationsPlugin.initialize(
     initSettings,
   );
-  //Notification 초기 설정
-  //onSelectNotification 옵션을 넣어서 메세지를 누르면 작동되는 콜백 함수를 생성 할 수 있다.(안써도됨)
-  //안쓰게되면 해당 노티 클릭시 앱을 그냥 실행한다.
-  //await flutterLocalNotificationsPlugin.initialize(initSettings,onSelectNotification:[콜백] );
+  // Notification 초기 설정
+  // onSelectNotification 옵션을 넣어서 메세지를 누르면 작동되는 콜백 함수를 생성 할 수 있다.(안써도됨)
+  // 안쓰게되면 해당 노티 클릭시 앱을 그냥 실행한다.
+  // await flutterLocalNotificationsPlugin.initialize(initSettings,onSelectNotification:[콜백] );
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -129,6 +132,7 @@ class SignInButtonState extends State<SignInButton> {
         // 사용자가 로그인을 취소함
         return;
       }
+
       PermissionStatus status = await Permission.notification.request();
       if (status != PermissionStatus.granted) {
         // 사용자가 알림 권한을 거부한 경우
@@ -139,12 +143,19 @@ class SignInButtonState extends State<SignInButton> {
         // 사용자가 위치 권한을 거부함
         return;
       }
-
       // 로그인 성공 후 페이지 이동
       email = googleUser.email;
+      final response = await http.get(
+        Uri.parse('https://httpbin.org/get?email=$email'),
+      );
+      if (response.statusCode == 200) {
+        print(response.body);
+        await _showGenderInputBottomSheet();
+      }
+
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Main(data:googleUser.photoUrl, name: googleUser.displayName)),
+        MaterialPageRoute(builder: (context) => Main(data: googleUser.photoUrl, name: googleUser.displayName)),
       );
       print("로그인 성공: ${googleUser.email}"
           "${googleUser.displayName}"
@@ -152,6 +163,44 @@ class SignInButtonState extends State<SignInButton> {
     } catch (e) {
       print("로그인 오류: $e");
     }
+  }
+
+  Future<void> _showGenderInputBottomSheet() async {
+    String? selectedGender = await showModalBottomSheet<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('성별을 입력해주세요', style: TextStyle(fontSize: 18)),
+              SizedBox(height: 10),
+              ListTile(
+                title: Text('남성'),
+                onTap: () {
+                  Navigator.pop(context, '남성');
+                },
+              ),
+              ListTile(
+                title: Text('여성'),
+                onTap: () {
+                  Navigator.pop(context, '여성');
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (selectedGender != null) {
+      _saveGender(selectedGender);
+    }
+  }
+
+  void _saveGender(String gender) {
+    // 성별 저장 로직을 여기에 추가하세요
+    print('성별 저장: $gender');
   }
 
   @override
