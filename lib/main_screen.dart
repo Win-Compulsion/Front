@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'setting.dart';
+import 'matching_choose.dart';
 import 'package:flutter_image/flutter_image.dart';
 
 String nameAll = "";
@@ -31,8 +32,12 @@ class Main extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (context) => Setting()),
         );
-      } else {
+      } else if (index == 1){
         // Handle other navigation items here
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Matchingchoose()),
+        );
       }
     }
 
@@ -356,152 +361,431 @@ class Main extends StatelessWidget {
                   top: 485,
                   child: SizedBox(
                     width: 222,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 222,
-                          height: 134,
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                left: 47,
-                                top: 0,
-                                child: SizedBox(
-                                    width: 130,
-                                    height: 58,
-                                    child: DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 30,
-                                        fontFamily: 'Oswald',
-                                        fontWeight: FontWeight.w100,
-                                        height: 0,
+                    height: 500,
+                    child: PageView(
+                        controller: pageController,
+                        children: [
+                          SizedBox(
+                            width: 222,
+                            height: 134,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 47,
+                                  top: 0,
+                                  child: SizedBox(
+                                      width: 130,
+                                      height: 58,
+                                      child: DefaultTextStyle(
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 30,
+                                          fontFamily: 'Oswald',
+                                          fontWeight: FontWeight.w100,
+                                          height: 0,
+                                        ),
+                                        child:Text(
+                                          '1Km',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )
+
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 118,
+                                  child: Container(
+                                    width: 141,
+                                    height: 14,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFFDFEF81),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
                                       ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 93,
+                                  child: Container(
+                                    width: 159,
+                                    height: 14,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFF96FFDC),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 117,
+                                  child: Container(
+                                    width: 221,
+                                    height: 16,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(width: 1),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 0,
+                                  top: 92,
+                                  child: Container(
+                                    width: 221,
+                                    height: 16,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(width: 1),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                    left: 19,
+                                    top: 91,
+                                    child: DefaultTextStyle(style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontFamily: 'Oswald',
+                                      fontWeight: FontWeight.w400,
+                                      height: 0,
+                                    ),
                                       child:Text(
-                                        '1Km',
+                                        '550/800',
                                         textAlign: TextAlign.center,
+
                                       ),
                                     )
 
                                 ),
-                              ),
-                              Positioned(
-                                left: 1,
-                                top: 118,
-                                child: Container(
-                                  width: 141,
-                                  height: 14,
-                                  decoration: ShapeDecoration(
-                                    color: Color(0xFFDFEF81),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
+                                Positioned(
+                                  left: 4,
+                                  top: 93,
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: Image.asset("assets/crown.png"),
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                left: 1,
-                                top: 93,
-                                child: Container(
-                                  width: 159,
-                                  height: 14,
-                                  decoration: ShapeDecoration(
-                                    color: Color(0xFF96FFDC),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24),
+                                Positioned(
+                                    left: 19,
+                                    top: 116,
+                                    child: DefaultTextStyle(style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontFamily: 'Oswald',
+                                      fontWeight: FontWeight.w400,
+                                      height: 0,
                                     ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 1,
-                                top: 117,
-                                child: Container(
-                                  width: 221,
-                                  height: 16,
-                                  decoration: ShapeDecoration(
-                                    shape: RoundedRectangleBorder(
-                                      side: BorderSide(width: 1),
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 0,
-                                top: 92,
-                                child: Container(
-                                  width: 221,
-                                  height: 16,
-                                  decoration: ShapeDecoration(
-                                    shape: RoundedRectangleBorder(
-                                      side: BorderSide(width: 1),
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                  left: 19,
-                                  top: 91,
-                                  child: DefaultTextStyle(style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 12,
-                                    fontFamily: 'Oswald',
-                                    fontWeight: FontWeight.w400,
-                                    height: 0,
-                                  ),
-                                    child:Text(
-                                      '550/800',
-                                      textAlign: TextAlign.center,
+                                      child:Text(
+                                        '68%',
+                                        textAlign: TextAlign.center,
 
-                                    ),
-                                  )
+                                      ),
+                                    )
 
-                              ),
-                              Positioned(
-                                left: 4,
-                                top: 93,
-                                child: SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: Image.asset("assets/crown.png"),
                                 ),
-                              ),
-                              Positioned(
-                                  left: 19,
-                                  top: 116,
-                                  child: DefaultTextStyle(style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 12,
-                                    fontFamily: 'Oswald',
-                                    fontWeight: FontWeight.w400,
-                                    height: 0,
+                                Positioned(
+                                  left: 4,
+                                  top: 118,
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: Image.asset("assets/graph.png"),
                                   ),
-                                    child:Text(
-                                      '68%',
-                                      textAlign: TextAlign.center,
-
-                                    ),
-                                  )
-
-                              ),
-                              Positioned(
-                                left: 4,
-                                top: 118,
-                                child: SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: Image.asset("assets/graph.png"),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          SizedBox(
+                            width: 222,
+                            height: 134,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 47,
+                                  top: 0,
+                                  child: SizedBox(
+                                      width: 130,
+                                      height: 58,
+                                      child: DefaultTextStyle(
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 30,
+                                          fontFamily: 'Oswald',
+                                          fontWeight: FontWeight.w100,
+                                          height: 0,
+                                        ),
+                                        child:Text(
+                                          '3Km',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )
+
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 118,
+                                  child: Container(
+                                    width: 141,
+                                    height: 14,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFFDFEF81),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 93,
+                                  child: Container(
+                                    width: 159,
+                                    height: 14,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFF96FFDC),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 117,
+                                  child: Container(
+                                    width: 221,
+                                    height: 16,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(width: 1),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 0,
+                                  top: 92,
+                                  child: Container(
+                                    width: 221,
+                                    height: 16,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(width: 1),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                    left: 19,
+                                    top: 91,
+                                    child: DefaultTextStyle(style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontFamily: 'Oswald',
+                                      fontWeight: FontWeight.w400,
+                                      height: 0,
+                                    ),
+                                      child:Text(
+                                        '550/800',
+                                        textAlign: TextAlign.center,
+
+                                      ),
+                                    )
+
+                                ),
+                                Positioned(
+                                  left: 4,
+                                  top: 93,
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: Image.asset("assets/crown.png"),
+                                  ),
+                                ),
+                                Positioned(
+                                    left: 19,
+                                    top: 116,
+                                    child: DefaultTextStyle(style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontFamily: 'Oswald',
+                                      fontWeight: FontWeight.w400,
+                                      height: 0,
+                                    ),
+                                      child:Text(
+                                        '68%',
+                                        textAlign: TextAlign.center,
+
+                                      ),
+                                    )
+
+                                ),
+                                Positioned(
+                                  left: 4,
+                                  top: 118,
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: Image.asset("assets/graph.png"),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 222,
+                            height: 134,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 47,
+                                  top: 0,
+                                  child: SizedBox(
+                                      width: 130,
+                                      height: 58,
+                                      child: DefaultTextStyle(
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 30,
+                                          fontFamily: 'Oswald',
+                                          fontWeight: FontWeight.w100,
+                                          height: 0,
+                                        ),
+                                        child:Text(
+                                          '5Km',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )
+
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 118,
+                                  child: Container(
+                                    width: 141,
+                                    height: 14,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFFDFEF81),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 93,
+                                  child: Container(
+                                    width: 159,
+                                    height: 14,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFF96FFDC),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 1,
+                                  top: 117,
+                                  child: Container(
+                                    width: 221,
+                                    height: 16,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(width: 1),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 0,
+                                  top: 92,
+                                  child: Container(
+                                    width: 221,
+                                    height: 16,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(width: 1),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                    left: 19,
+                                    top: 91,
+                                    child: DefaultTextStyle(style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontFamily: 'Oswald',
+                                      fontWeight: FontWeight.w400,
+                                      height: 0,
+                                    ),
+                                      child:Text(
+                                        '550/800',
+                                        textAlign: TextAlign.center,
+
+                                      ),
+                                    )
+
+                                ),
+                                Positioned(
+                                  left: 4,
+                                  top: 93,
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: Image.asset("assets/crown.png"),
+                                  ),
+                                ),
+                                Positioned(
+                                    left: 19,
+                                    top: 116,
+                                    child: DefaultTextStyle(style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontFamily: 'Oswald',
+                                      fontWeight: FontWeight.w400,
+                                      height: 0,
+                                    ),
+                                      child:Text(
+                                        '68%',
+                                        textAlign: TextAlign.center,
+
+                                      ),
+                                    )
+
+                                ),
+                                Positioned(
+                                  left: 4,
+                                  top: 118,
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: Image.asset("assets/graph.png"),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                     ),
                   ),
                 ),

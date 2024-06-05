@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'main_screen.dart';
+import 'matching_choose.dart';
 
 class Setting extends StatefulWidget {
+
   Setting({super.key});
 
   @override
@@ -119,10 +121,14 @@ class _SettingState extends State<Setting> {
                           Positioned(
                             left: 3,
                             top: 0,
-                            child: SizedBox(
-                                width: 37,
-                                height: 37,
-                                child: Image.asset("assets/person.png")
+                            child: ClipRRect(
+                                borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                                child: SizedBox(
+                                    width: 37,
+                                    height: 37,
+                                    child: Image(image: NetworkImage(dataAll)
+                                    )
+                                )
                             ),
                           ),
                           Positioned(
@@ -155,7 +161,7 @@ class _SettingState extends State<Setting> {
                               width: 28,
                               height: 9,
                               child: Text(
-                                '닉네임',
+                                nameAll,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.black,
@@ -414,6 +420,11 @@ class _SettingState extends State<Setting> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => Main(data: dataAll,name: nameAll,)),
+                );
+              }else if(index == 1){
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => Matchingchoose()),
                 );
               }
             },
