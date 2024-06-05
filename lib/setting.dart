@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'main_screen.dart';
-import 'matching_choose.dart';
+import 'navi.dart';
+import 'profile.dart';
 
 class Setting extends StatefulWidget {
+  final String imageUrl;
+  final String name;
 
-  Setting({super.key});
+  const Setting({Key? key, required this.imageUrl, required this.name}) : super(key: key);
 
   @override
   _SettingState createState() => _SettingState();
@@ -14,7 +16,7 @@ class Setting extends StatefulWidget {
 
 class _SettingState extends State<Setting> {
 
-  final bool _isDarkTheme = isDarkTheme; // 다크 테마 여부를 나타내는 변수
+  bool _isDarkTheme = false; // 다크 테마 여부를 나타내는 변수
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +25,8 @@ class _SettingState extends State<Setting> {
     double screenHeight = screenSize.height;
 
     return MaterialApp(
-      theme: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
       home: Scaffold(
-        body: Theme(
-        data: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),child: ListView(
+        body: ListView(
           children: [
             Container(
               width: screenWidth,
@@ -49,7 +49,7 @@ class _SettingState extends State<Setting> {
                     top: 107,
                     child: Container(
                       width: 320,
-                      height: 400,
+                      height: 582,
                       decoration: ShapeDecoration(
                         color: Color(0xFFD9D9D9),
                         shape: RoundedRectangleBorder(
@@ -93,89 +93,7 @@ class _SettingState extends State<Setting> {
                   Positioned(
                     left: screenWidth / 2 - 160,
                     top: 40,
-                    child: SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: 4,
-                            top: 2,
-                            child: Container(
-                              width: 35,
-                              height: 35,
-                              decoration: ShapeDecoration(
-                                color: Color(0xFFD9D9D9),
-                                shape: OvalBorder(side: BorderSide(width: 1)),
-                                shadows: const [
-                                  BoxShadow(
-                                    color: Color(0xFF000000),
-                                    blurRadius: 1,
-                                    offset: Offset(2, 2),
-                                    spreadRadius: 0,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 3,
-                            top: 0,
-                            child: ClipRRect(
-                                borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                                child: SizedBox(
-                                    width: 37,
-                                    height: 37,
-                                    child: Image(image: NetworkImage(dataAll)
-                                    )
-                                )
-                            ),
-                          ),
-                          Positioned(
-                            left: 0,
-                            top: 32,
-                            child: Container(
-                              width: 44,
-                              height: 12,
-                              decoration: ShapeDecoration(
-                                color: Color(0xFF96FFDC),
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(width: 1),
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                shadows: const [
-                                  BoxShadow(
-                                    color: Color(0xFF000000),
-                                    blurRadius: 0,
-                                    offset: Offset(2, 2),
-                                    spreadRadius: 0,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 7,
-                            top: 33,
-                            child: SizedBox(
-                              width: 28,
-                              height: 9,
-                              child: Text(
-                                nameAll,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 9,
-                                  fontFamily: 'NanumGothic',
-                                  fontWeight: FontWeight.w400,
-                                  height: 0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: Profile(imageUrl: widget.imageUrl, name: widget.name), // Profile 위젯 사용
                   ),
                   Positioned(
                     left: screenWidth / 2 - 20,
@@ -205,12 +123,20 @@ class _SettingState extends State<Setting> {
                     left: screenWidth / 2 - 158,
                     top: 158,
                     child: Container(
-                      width: 317,
+                      width: 318,
                       height: 53,
                       decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
                     ),
                   ),
-
+                  Positioned(
+                    left: screenWidth / 2 - 158,
+                    top: 212,
+                    child: Container(
+                      width: 318,
+                      height: 53,
+                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                    ),
+                  ),
                   Positioned(
                     left: screenWidth / 2 - 154,
                     top: 170,
@@ -241,10 +167,24 @@ class _SettingState extends State<Setting> {
                       ),
                     ),
                   ),
-
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 225,
+                    top: 224,
+                    child: Text(
+                      '테마',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontFamily: 'Oswald',
+                        fontWeight: FontWeight.w400,
+                        height: 0,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 - 154,
+                    top: 265,
                     child: Text(
                       '권한 설정',
                       textAlign: TextAlign.center,
@@ -259,38 +199,25 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 158,
-                    top: 263,
-                    child: GestureDetector(
-                      onTap: () async {
-                        // 알림 권한 요청 다이얼로그 표시
-                        await Geolocator.openAppSettings();// 필요에 따라 추가 작업 수행
-                        }
-                      ,
-                      child: Container(
-                        width: 317,
-                        height: 53,
-                        decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
-                      ),
+                    top: 303,
+                    child: Container(
+                      width: 318,
+                      height: 53,
+                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
                     ),
                   ),
                   Positioned(
                     left: screenWidth / 2 - 158,
-                    top: 317,
-                    child: GestureDetector(
-                      onTap: () async {
-                        // 위치 권한 확인
-                        await Geolocator.openAppSettings();
-                      },
-                      child: Container(
-                        width: 317,
-                        height: 53,
-                        decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
-                      ),
+                    top: 357,
+                    child: Container(
+                      width: 318,
+                      height: 53,
+                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
                     ),
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 275,
+                    top: 315,
                     child: Text(
                       '알림',
                       textAlign: TextAlign.center,
@@ -305,7 +232,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 329,
+                    top: 369,
                     child: Text(
                       '위치',
                       textAlign: TextAlign.center,
@@ -320,7 +247,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 370,
+                    top: 410,
                     child: Text(
                       '기타',
                       textAlign: TextAlign.center,
@@ -335,16 +262,64 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 - 158,
-                    top: 408,
+                    top: 448,
                     child: Container(
-                      width: 317,
+                      width: 318,
+                      height: 53,
+                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 - 158,
+                    top: 502,
+                    child: Container(
+                      width: 318,
+                      height: 53,
+                      decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 - 158,
+                    top: 556,
+                    child: Container(
+                      width: 318,
                       height: 53,
                       decoration: BoxDecoration(color: Color(0xFFF4F4F4)),
                     ),
                   ),
                   Positioned(
                     left: screenWidth / 2 - 154,
-                    top: 418,
+                    top: 460,
+                    child: Text(
+                      '도움말(FAQ)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontFamily: 'Oswald',
+                        fontWeight: FontWeight.w400,
+                        height: 0,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 - 154,
+                    top: 514,
+                    child: Text(
+                      '로그아웃',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontFamily: 'Oswald',
+                        fontWeight: FontWeight.w400,
+                        height: 0,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 - 154,
+                    top: 568,
                     child: Text(
                       '버전',
                       textAlign: TextAlign.center,
@@ -359,7 +334,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 + 90,
-                    top: 418,
+                    top: 568,
                     child: Text(
                       'v1.2.1',
                       textAlign: TextAlign.center,
@@ -374,7 +349,7 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 + 120,
-                    top: 329,
+                    top: 514,
                     child: SizedBox(
                       width: 30,
                       height: 30,
@@ -383,48 +358,62 @@ class _SettingState extends State<Setting> {
                   ),
                   Positioned(
                     left: screenWidth / 2 + 120,
-                    top: 275,
+                    top: 460,
                     child: SizedBox(
                       width: 30,
                       height: 30,
                       child: Image.asset("assets/forward.png"),
                     ),
                   ),
+                  Positioned(
+                    left: screenWidth / 2 + 120,
+                    top: 369,
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: Image.asset("assets/forward.png"),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 + 120,
+                    top: 315,
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: Image.asset("assets/forward.png"),
+                    ),
+                  ),
+                  Positioned(
+                    left: screenWidth / 2 + 90,
+                    top: 215,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Switch(
+                          value: _isDarkTheme,
+                          onChanged: (value) {
+                            setState(() {
+                              _isDarkTheme = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
-        ),),
+        ),
         bottomNavigationBar: ClipRRect(
           borderRadius: BorderRadius.only(topLeft: Radius.circular(30.0),topRight: Radius.circular(30.0)),
-          child: BottomNavigationBar(
-            selectedIconTheme: IconThemeData(color: Colors.black),
-            unselectedIconTheme: IconThemeData(color: Colors.grey),
-            backgroundColor: Color(0xFFD9D9D9),
-            items: const <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: '홈',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.directions_run),
-                label: '러닝',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: '설정',
-              ),
-            ],
-            onTap: (int index) {
+          child: MyBottomNavigationBar(
+            selectedIndex: 2,
+            onItemTapped: (int index) {
               if (index == 0) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => Main(data: dataAll,name: nameAll,)),
-                );
-              }else if(index == 1){
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => Matchingchoose()),
+                  MaterialPageRoute(builder: (context) => Main(data: widget.imageUrl, name: widget.name)),
                 );
               }
             },
