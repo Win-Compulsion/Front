@@ -149,7 +149,8 @@ class SignInButtonState extends State<SignInButton> {
         Uri.parse('https://httpbin.org/get?email=$email'),
       );
       if (response.statusCode == 200) {
-        print(response.body);
+        if(response.body == "{1}"){return;}
+
         await _showGenderInputBottomSheet();
       }
 
@@ -199,7 +200,9 @@ class SignInButtonState extends State<SignInButton> {
   }
 
   void _saveGender(String gender) {
-    // 성별 저장 로직을 여기에 추가하세요
+    http.post(
+      Uri.parse('https://httpbin.org/get?gender=$gender'),
+    );
     print('성별 저장: $gender');
   }
 
