@@ -4,42 +4,41 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'main_screen.dart';
 
 String email = "";
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await _initNotiSetting(); // Local Notification 초기 설정
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? savedEmail = prefs.getString('email');
+  String? savedGender = prefs.getString('gender');
+
   runApp(MaterialApp(
     title: 'Runwith',
     theme: ThemeData(
       primarySwatch: Colors.blue,
       fontFamily: "NanumGothic",
     ),
-    home: MyApp(),
+    home: savedEmail != null && savedGender != null
+        ? Main(data: savedEmail, name: savedGender)
+        : MyApp(),
   ));
 }
 
 Future<void> _initNotiSetting() async {
-  // Notification 플러그인 객체 생성
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-  // 안드로이드 초기 설정
   final AndroidInitializationSettings initSettingsAndroid =
   AndroidInitializationSettings('@mipmap/ic_launcher');
-  // Notification에 위에서 설정한 안드로이드, IOS 초기 설정 값 삽입
   final InitializationSettings initSettings = InitializationSettings(
     android: initSettingsAndroid,
   );
-  await flutterLocalNotificationsPlugin.initialize(
-    initSettings,
-  );
-  // Notification 초기 설정
-  // onSelectNotification 옵션을 넣어서 메세지를 누르면 작동되는 콜백 함수를 생성 할 수 있다.(안써도됨)
-  // 안쓰게되면 해당 노티 클릭시 앱을 그냥 실행한다.
-  // await flutterLocalNotificationsPlugin.initialize(initSettings,onSelectNotification:[콜백] );
+  await flutterLocalNotificationsPlugin.initialize(initSettings);
 }
 
 class MyApp extends StatelessWidget {
@@ -96,7 +95,8 @@ class MyApp extends StatelessWidget {
                     child: SizedBox(
                       width: 276,
                       height: 44,
-                      child: Image.asset("assets/runwith_high_resolution_logo_transparent_12.png"),
+                      child: Image.asset(
+                          "assets/runwith_high_resolution_logo_transparent_12.png"),
                     ),
                   ),
                   Positioned(
@@ -143,21 +143,29 @@ class SignInButtonState extends State<SignInButton> {
         // 사용자가 위치 권한을 거부함
         return;
       }
-      // 로그인 성공 후 페이지 이동
+
+      // 로그인 성공 후 이메일을 백엔드로 보내서 사용자가 등록되어 있는지 확인
       email = googleUser.email;
       final response = await http.get(
         Uri.parse('https://httpbin.org/get?email=$email'),
       );
-      if (response.statusCode == 200) {
-        if(response.body == "{1}"){return;}
 
+      if (response.statusCode == 200) {
+        // 사용자 등록되어 있으면 메인 화면으로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  Main(data: googleUser.photoUrl, name: googleUser.displayName)),
+        );
+      } else if (response.statusCode == 404) {
+        // 사용자 등록되어 있지 않으면 성별 입력 받기
         await _showGenderInputBottomSheet();
       }
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Main(data: googleUser.photoUrl, name: googleUser.displayName)),
-      );
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('email', googleUser.email);
+
       print("로그인 성공: ${googleUser.email}"
           "${googleUser.displayName}"
           "${googleUser.photoUrl}");
@@ -194,16 +202,34 @@ class SignInButtonState extends State<SignInButton> {
         );
       },
     );
+
     if (selectedGender != null) {
-      _saveGender(selectedGender);
+      await _saveGender(selectedGender);
     }
   }
 
-  void _saveGender(String gender) {
-    http.post(
-      Uri.parse('https://httpbin.org/get?gender=$gender'),
+  Future<void> _saveGender(String gender) async {
+    // 성별을 백엔드로 저장 요청
+    final response = await http.post(
+      Uri.parse('https://httpbin.org/save-gender'),
+      body: {'email': email, 'gender': gender},
     );
-    print('성별 저장: $gender');
+
+    if (response.statusCode == 200) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('gender', gender);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                Main(data: email, name: gender)),
+      );
+
+      print('성별 저장: $gender');
+    } else {
+      print('성별 저장 실패: ${response.body}');
+    }
   }
 
   @override
