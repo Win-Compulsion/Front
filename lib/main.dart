@@ -10,8 +10,25 @@ import 'main_screen.dart';
 
 String email = "";
 
+Future<void> clearAllPreferences() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+} //테스트용, SharedPreferences에 있는 로컬 정보 제거용 함수
+
+Future<void> signOutGoogle() async {
+  GoogleSignIn googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+  );
+  await googleSignIn.signOut();
+}//테스트용, 구글 로그아웃 함수
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await clearAllPreferences();
+  await signOutGoogle();
+
 
   await _initNotiSetting(); // Local Notification 초기 설정
 
@@ -148,7 +165,7 @@ class SignInButtonState extends State<SignInButton> {
       email = googleUser.email;
       final response = await http.get(
         Uri.parse('https://httpbin.org/get?email=$email'),
-      );
+      );//에러테스트 http://noneurl.com/get?email=$email
 
       if (response.statusCode == 200) {
         // 사용자 등록되어 있으면 메인 화면으로 이동
@@ -161,6 +178,8 @@ class SignInButtonState extends State<SignInButton> {
       } else if (response.statusCode == 404) {
         // 사용자 등록되어 있지 않으면 성별 입력 받기
         await _showGenderInputBottomSheet();
+      }else {
+        print('연결 오류: ${response.statusCode}');
       }
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -213,7 +232,7 @@ class SignInButtonState extends State<SignInButton> {
     final response = await http.post(
       Uri.parse('https://httpbin.org/save-gender'),
       body: {'email': email, 'gender': gender},
-    );
+    );//에러테스트 http://noneurl.com/save-gender
 
     if (response.statusCode == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
