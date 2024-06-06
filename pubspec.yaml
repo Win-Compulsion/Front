@@ -94,16 +94,14 @@ flutter:
   fonts:
     - family: NanumGothic
       fonts:
-        - asset: assets/fonts/NanumGothic.ttf
-          weight: 100
-        - asset: assets/fonts/NanumGothicBold.ttf
-          weight: 200
         - asset: assets/fonts/NanumGothicExtraBold.ttf
           weight: 300
-        - asset: assets/fonts/NanumGothicLight.ttf
-          weight: 400
     - family: Oswald
       fonts:
         - asset: assets/fonts/Oswald-variableFont_wght.ttf
+    - family: Ranga
+      fonts:
+        - asset: assets/fonts/Ranga-Bold.ttf
+          weight: 100
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

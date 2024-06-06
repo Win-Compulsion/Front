@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:runwith/setting.dart';
 import 'main_screen.dart';
+import 'matching.dart';
 
 class Matchingchoose extends StatefulWidget {
   Matchingchoose({super.key});
@@ -211,7 +212,7 @@ class _MatchingChooseState extends State<Matchingchoose> {
                                 child:Transform.scale(
                                   scale: Curves.easeOut.transform(value),
                                   child: Container(
-                                    margin: EdgeInsets.symmetric(horizontal: 0),
+                                    margin: EdgeInsets.symmetric(horizontal: 10),
                                     width: 70,
                                     height: 180,
                                     decoration: ShapeDecoration(
@@ -357,7 +358,12 @@ class _MatchingChooseState extends State<Matchingchoose> {
         return  GestureDetector(
             onTap: () {
             Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
-
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Matching(),
+              ),
+            );
         },
         child: AlertDialog(
           backgroundColor: Colors.transparent,
