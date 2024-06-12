@@ -357,13 +357,8 @@ class _MatchingChooseState extends State<Matchingchoose> {
       builder: (BuildContext context) {
         return  GestureDetector(
             onTap: () {
-            Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Matching(),
-              ),
-            );
+              Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
+              _showLoadingEndModal(index);
         },
         child: AlertDialog(
           backgroundColor: Colors.transparent,
@@ -382,8 +377,47 @@ class _MatchingChooseState extends State<Matchingchoose> {
                 ),
               ),
 
+
           ]),
         ),);
+      },
+    );
+  }
+  void _showLoadingEndModal(int index) {
+    print(index);
+    // 여기에 백엔드 매칭 요청 보내기 추가, index 사용, 0은 1Km, 1은 3Km, 2는 5Km
+    showDialog(
+      context: context,
+      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 없도록 설정
+      builder: (BuildContext context) {
+        return  GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Matching(distance: index,),
+              ),
+            );
+          },
+          child: AlertDialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Text(
+                    '상대를 찾았습니다. \n3초 후 대전이 시작됩니다!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+
+                ]),
+          ),);
       },
     );
   }

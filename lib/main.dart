@@ -168,6 +168,7 @@ class SignInButtonState extends State<SignInButton> {
       );//에러테스트 http://noneurl.com/get?email=$email
 
       if (response.statusCode == 200) {
+        await _showGenderInputBottomSheet();
         // 사용자 등록되어 있으면 메인 화면으로 이동
         Navigator.push(
           context,

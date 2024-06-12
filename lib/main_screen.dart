@@ -229,6 +229,41 @@ class Main extends StatelessWidget {
                     ),
                   ),),
                 Positioned(
+                  left: screenWidth / 2 - 156 ,
+                  top: 346,
+                  child: InkWell(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: Image.asset("assets/win.png"),
+                        ),
+                        const SizedBox(width: 13),
+                        SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: Image.asset("assets/lose.png"),
+                        ),
+                        const SizedBox(width: 13),
+                        SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: Image.asset("assets/lose.png"),
+                        ),
+                        const SizedBox(width: 13),
+                        SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: Image.asset("assets/win.png"),
+                        ),
+                      ],
+                    ),
+                  ),),
+                Positioned(
                   left: screenWidth / 2 - 69,
                   top: 643,
                   child: Container(

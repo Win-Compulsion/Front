@@ -1,32 +1,103 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:runwith/setting.dart';
-import 'main_screen.dart';
+import 'dart:async';
+
+import 'package:runwith/main_screen.dart'; // Import the dart async package for Timer
 
 class Matching extends StatefulWidget {
-
-  Matching({super.key});
+  final int distance;
+  Matching({Key? key, required this.distance}) : super(key: key);
 
   @override
   _MatchingState createState() => _MatchingState();
 }
 
 class _MatchingState extends State<Matching> {
-  final bool _isDarkTheme = isDarkTheme; // 다크 테마 여부를 나타내는 변수
-  final PageController _pageController = PageController(viewportFraction: 0.7);
+  late Timer _timer;
+  Duration _elapsed = Duration();
+  double _distanceCovered = 0.0;
+  Position? _previousPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _startStopwatch();
+    _requestLocationPermission();
+  }
+
+  void _requestLocationPermission() async {
+    var status = await Permission.locationWhenInUse.status;
+    if (status.isDenied || status.isRestricted) {
+      await Permission.locationWhenInUse.request();
+    }
+    if (await Permission.locationWhenInUse.isGranted) {
+      _startLocationTracking();
+    }
+  }
+
+  void _startStopwatch() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        _elapsed = _elapsed + Duration(seconds: 1);
+      });
+    });
+  }
+
+  void _startLocationTracking() {
+    Geolocator.getPositionStream().listen((Position? position) {
+      if (position != null && _timer.isActive) {
+        if (_previousPosition != null) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            _previousPosition!.latitude,
+            _previousPosition!.longitude,
+            position.latitude,
+            position.longitude,
+          );
+          setState(() {
+            _distanceCovered += distanceInMeters / 1000;
+          });
+        }
+        _previousPosition = position;
+      }
+
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String _formattedElapsedTime() {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String minutes = twoDigits(_elapsed.inMinutes.remainder(60));
+    String seconds = twoDigits(_elapsed.inSeconds.remainder(60));
+    return "$minutes:$seconds";
+  }
+
+  String _formattedPace() {
+    if (_distanceCovered == 0) return "00'00\"";
+    double pace = _elapsed.inSeconds / _distanceCovered;
+    int paceMinutes = (pace / 60).floor();
+    int paceSeconds = (pace % 60).round();
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(paceMinutes)}'${twoDigits(paceSeconds)}\"";
+  }
 
   @override
   Widget build(BuildContext context) {
+
     Size screenSize = MediaQuery.of(context).size;
     double screenWidth = screenSize.width;
     double screenHeight = screenSize.height;
 
     return MaterialApp(
-      theme: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
+      theme: ThemeData.light(),
       home: Scaffold(
         body: Theme(
-          data: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
+          data: ThemeData.light(),
           child: ListView(
             children: [
               Container(
@@ -100,7 +171,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 145,
                       top: 155,
                       child: Container(
-                        width: 58,
+                        width: 20,
                         height: 30,
                         decoration: ShapeDecoration(
                           color: Color(0xFFFFC35A),
@@ -129,7 +200,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 10,
                       top: 160,
                       child: Text(
-                        '20%',
+                        '0%',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -144,7 +215,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 120,
                       top: 250,
                       child: Text(
-                        '01:15',
+                        _formattedElapsedTime(), // Use the formatted elapsed time
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -159,7 +230,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 + 60,
                       top: 250,
                       child: Text(
-                        '05\'00"',
+                        _formattedPace(), // Use the formatted pace
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -192,7 +263,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 70,
                       top: 320,
                       child: Text(
-                        '0.25',
+                        _distanceCovered.toStringAsFixed(2),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -206,7 +277,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 + 10,
                       top: 380,
                       child: Text(
-                        '/3.00',
+                        getDistance(widget.distance),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFFBEBEBE),
@@ -261,7 +332,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 120,
                       top: 620,
                       child: Text(
-                        '0.50',
+                        '0.00',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFF3B3B3B),
@@ -289,7 +360,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 + 30,
                       top: 620,
                       child: Text(
-                        '02\'30"',
+                        '00\'00"',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFF3B3B3B),
@@ -308,8 +379,6 @@ class _MatchingState extends State<Matching> {
                         child: Image.asset("assets/darkgrayshoes.png"),
                       ),
                     ),
-
-
                     Positioned(
                       left: screenWidth / 2 - 90,
                       top: 40,
@@ -437,7 +506,21 @@ class _MatchingState extends State<Matching> {
       ),
     );
   }
+
+  String getDistance(int index) {
+    switch (index) {
+      case 0:
+        return '/1.00';
+      case 1:
+        return '/3.00';
+      case 2:
+        return '/5.00';
+      default:
+        return "/0.00";
+    }
+  }
 }
+
 class CustomClipperPath extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
