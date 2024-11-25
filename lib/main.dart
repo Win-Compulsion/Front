@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:geolocator/geolocator.dart';
@@ -5,10 +7,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 import 'main_screen.dart';
 
 String email = "";
+String nickname = "";
+String profileurl = "";
 
 Future<void> clearAllPreferences() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -25,6 +30,9 @@ Future<void> signOutGoogle() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  HttpClient httpClient = HttpClient();
+  httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+
 
   await clearAllPreferences();
   await signOutGoogle();
@@ -163,8 +171,12 @@ class SignInButtonState extends State<SignInButton> {
 
       // 로그인 성공 후 이메일을 백엔드로 보내서 사용자가 등록되어 있는지 확인
       email = googleUser.email;
+      nickname = googleUser.displayName ?? 'Unknown User'; // null이면 기본값 설정
+      profileurl = googleUser.photoUrl ?? ''; // null이면 빈 문자열 설정
+      print('Request URL: http://10.0.2.2:8080/member/findemail/$email');
+
       final response = await http.get(
-        Uri.parse('https://httpbin.org/get?email=$email'),
+        Uri.parse('http://10.0.2.2:8080/member/findemail/$email'), // Spring Boot API
       );//에러테스트 http://noneurl.com/get?email=$email
 
       if (response.statusCode == 200) {
@@ -176,9 +188,15 @@ class SignInButtonState extends State<SignInButton> {
               builder: (context) =>
                   Main(data: googleUser.photoUrl, name: googleUser.displayName)),
         );
-      } else if (response.statusCode == 404) {
+      } else if (response.statusCode == 500) {
         // 사용자 등록되어 있지 않으면 성별 입력 받기
-        await _showGenderInputBottomSheet();
+        //await _showGenderInputBottomSheet();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  Main(data: googleUser.photoUrl, name: googleUser.displayName)),
+        );
       }else {
         print('연결 오류: ${response.statusCode}');
       }
@@ -229,10 +247,17 @@ class SignInButtonState extends State<SignInButton> {
   }
 
   Future<void> _saveGender(String gender) async {
+    bool genderValue = (gender == '남성') ? true : false;
     // 성별을 백엔드로 저장 요청
     final response = await http.post(
-      Uri.parse('https://httpbin.org/save-gender'),
-      body: {'email': email, 'gender': gender},
+      Uri.parse('http://10.0.2.2:8080/member/save-data'),
+      body: json.encode({
+        'email': email,
+        'nickname': nickname,
+        'profileurl': profileurl,
+        'gender': genderValue,
+      }),
+      headers: {'Content-Type': 'application/json'},
     );//에러테스트 http://noneurl.com/save-gender
 
     if (response.statusCode == 200) {
