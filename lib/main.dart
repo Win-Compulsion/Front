@@ -250,11 +250,11 @@ class SignInButtonState extends State<SignInButton> {
     bool genderValue = (gender == '남성') ? true : false;
     // 성별을 백엔드로 저장 요청
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8080/member/save-data'),
+      Uri.parse('http://10.0.2.2:8080/member/savedata'),
       body: json.encode({
         'email': email,
-        'nickname': nickname,
-        'profileurl': profileurl,
+        'profileName': nickname,
+        'profileImg': profileurl,
         'gender': genderValue,
       }),
       headers: {'Content-Type': 'application/json',
