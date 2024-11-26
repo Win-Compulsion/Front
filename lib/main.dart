@@ -190,13 +190,13 @@ class SignInButtonState extends State<SignInButton> {
         );
       } else if (response.statusCode == 500) {
         // 사용자 등록되어 있지 않으면 성별 입력 받기
-        //await _showGenderInputBottomSheet();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  Main(data: googleUser.photoUrl, name: googleUser.displayName)),
-        );
+        await _showGenderInputBottomSheet();
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //       builder: (context) =>
+        //           Main(data: googleUser.photoUrl, name: googleUser.displayName)),
+        // );
       }else {
         print('연결 오류: ${response.statusCode}');
       }
@@ -257,7 +257,8 @@ class SignInButtonState extends State<SignInButton> {
         'profileurl': profileurl,
         'gender': genderValue,
       }),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json',
+        'Accept': 'application/json',},
     );//에러테스트 http://noneurl.com/save-gender
 
     if (response.statusCode == 200) {
