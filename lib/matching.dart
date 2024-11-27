@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/status.dart' as status;
+import 'dart:convert';
+import 'package:runwith/main_screen.dart';
+// import 'result_screen.dart';
 
-import 'package:runwith/main_screen.dart'; // Import the dart async package for Timer
 
 class Matching extends StatefulWidget {
   final int distance;
@@ -15,15 +19,30 @@ class Matching extends StatefulWidget {
 
 class _MatchingState extends State<Matching> {
   late Timer _timer;
+  late WebSocketChannel _channel;
+
   Duration _elapsed = Duration();
   double _distanceCovered = 0.0;
   Position? _previousPosition;
+
+  Duration _opponentElapsed = Duration();
+  double _opponentDistance = 0.0;
+
+  bool isFinish = false;
 
   @override
   void initState() {
     super.initState();
     _startStopwatch();
     _requestLocationPermission();
+    _initializeWebSocket();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _channel.sink.close(status.goingAway);
+    super.dispose();
   }
 
   void _requestLocationPermission() async {
@@ -41,6 +60,8 @@ class _MatchingState extends State<Matching> {
       setState(() {
         _elapsed = _elapsed + Duration(seconds: 1);
       });
+      _sendDataToServer(); // 서버에 데이터 전송
+      _checkGameFinish();  // 게임 종료 상태 확인
     });
   }
 
@@ -55,19 +76,80 @@ class _MatchingState extends State<Matching> {
             position.longitude,
           );
           setState(() {
-            _distanceCovered += distanceInMeters / 1000;
+            _distanceCovered += distanceInMeters / 1000; // 거리 누적
           });
+          _checkGameFinish(); // 게임 종료 상태 확인
         }
         _previousPosition = position;
       }
-
     });
   }
 
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
+  void _initializeWebSocket() {
+    // WebSocket 연결
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://10.0.2.2:8080/socket'),
+    );
+
+    // WebSocket 메시지 리스닝
+    _channel.stream.listen((message) {
+      final data = json.decode(message);
+
+      // 상대방의 경과 시간과 거리 업데이트
+      setState(() {
+        _opponentElapsed = Duration(seconds: data['opponent_elapsed_time']);
+        _opponentDistance = data['opponent_distance'];
+      });
+
+      // 로그 추가
+      print('Received opponent data: Elapsed Time - ${_opponentElapsed.inSeconds}s, Distance - ${_opponentDistance}km');
+
+      // 게임 종료 상태 확인
+      _checkGameFinish();
+    });
+  }
+
+  void _sendDataToServer() {
+    // 서버에 데이터 전송
+    final data = {
+      'elapsed_time': _elapsed.inSeconds,
+      'distance_covered': _distanceCovered.toStringAsFixed(2),
+    };
+    _channel.sink.add(json.encode(data));
+
+    // 로그 추가
+    print('Sent to server: Elapsed Time - ${_elapsed.inSeconds}s, Distance Covered - ${_distanceCovered.toStringAsFixed(2)}km');
+  }
+
+  void _checkGameFinish() {
+    print('widget.distance = ${widget.distance}');
+    // 플레이어가 목표 거리 이상을 커버한 경우
+    if (_distanceCovered >= widget.distance && widget.distance > 0) {
+      setState(() {
+        isFinish = true;
+      });
+      print('Player has finished the race!');
+      _navigateToResultScreen('승리'); // 결과 화면 이동
+    }
+    // 상대방이 목표 거리 이상을 커버한 경우
+    else if (_opponentDistance >= widget.distance && widget.distance > 0) {
+      print('Opponent has finished the race!');
+      _navigateToResultScreen('패배'); // 결과 화면 이동
+    }
+  }
+
+  void _navigateToResultScreen(String result) {
+    // 타이머 종료 및 웹소켓 종료
+    // 로그 추가
+    print('Navigating to result screen with result: $result');
+
+    _channel.sink.close(); // 웹소켓 종료
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResultScreen(result: result),
+      ),
+    );
   }
 
   String _formattedElapsedTime() {
@@ -80,6 +162,15 @@ class _MatchingState extends State<Matching> {
   String _formattedPace() {
     if (_distanceCovered == 0) return "00'00\"";
     double pace = _elapsed.inSeconds / _distanceCovered;
+    int paceMinutes = (pace / 60).floor();
+    int paceSeconds = (pace % 60).round();
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(paceMinutes)}'${twoDigits(paceSeconds)}\"";
+  }
+
+  String _formattedOpponentPace() {
+    if (_opponentDistance == 0) return "00'00\"";
+    double pace = _opponentElapsed.inSeconds / _opponentDistance;
     int paceMinutes = (pace / 60).floor();
     int paceSeconds = (pace % 60).round();
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -171,7 +262,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 145,
                       top: 155,
                       child: Container(
-                        width: 20,
+                        width: (_distanceCovered /(widget.distance + 1).toDouble()*100)*2.7 + 20,
                         height: 30,
                         decoration: ShapeDecoration(
                           color: Color(0xFFFFC35A),
@@ -200,7 +291,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 10,
                       top: 160,
                       child: Text(
-                        '0%',
+                        "${((_distanceCovered / (widget.distance + 1).toDouble()) * 100).toInt()}%", // 퍼센트 기호 추가
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -211,6 +302,7 @@ class _MatchingState extends State<Matching> {
                         ),
                       ),
                     ),
+
                     Positioned(
                       left: screenWidth / 2 - 120,
                       top: 250,
@@ -332,7 +424,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 - 120,
                       top: 620,
                       child: Text(
-                        '0.00',
+                        _opponentDistance.toStringAsFixed(2),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFF3B3B3B),
@@ -360,7 +452,7 @@ class _MatchingState extends State<Matching> {
                       left: screenWidth / 2 + 30,
                       top: 620,
                       child: Text(
-                        '00\'00"',
+                        _formattedOpponentPace(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFF3B3B3B),
@@ -509,11 +601,11 @@ class _MatchingState extends State<Matching> {
 
   String getDistance(int index) {
     switch (index) {
-      case 0:
-        return '/1.00';
       case 1:
+        return '/1.00';
+      case 3:
         return '/3.00';
-      case 2:
+      case 5:
         return '/5.00';
       default:
         return "/0.00";
@@ -525,17 +617,60 @@ class CustomClipperPath extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    path.moveTo(0, 70); // top-left corner with padding
-    path.lineTo(size.width / 2, 0); // top center (point)
-    path.lineTo(size.width, 70); // top-right corner with padding
-    path.lineTo(size.width, size.height); // bottom-right corner
-    path.lineTo(0, size.height); // bottom-left corner
-    path.close(); // close the path to the start point
+    path.moveTo(0, 70);
+    path.lineTo(size.width / 2, 0);
+    path.lineTo(size.width, 70);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
     return path;
   }
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) {
     return false;
+  }
+}
+
+class ResultScreen extends StatelessWidget {
+  final String result;
+
+  ResultScreen({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Game Result')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              result == '승리' ? Icons.check_circle : Icons.cancel,
+              color: result == '승리' ? Colors.green : Colors.red,
+              size: 100,
+            ),
+            SizedBox(height: 20),
+            Text(
+              result == '승리' ? '축하합니다, 승리하셨습니다!' : '아쉽게 패배하셨습니다.',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Main(data: dataAll, name: nameAll),
+                  ),
+                      (route) => false,
+                );
+              },
+              child: Text('돌아가기'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

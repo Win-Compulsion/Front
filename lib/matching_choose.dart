@@ -540,7 +540,7 @@ class _MatchingChooseState extends State<Matchingchoose> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Matching(distance: index),
+                    builder: (context) => Matching(distance: _getDistanceForIndex(index)),
                   ),
                 );
               }
