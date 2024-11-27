@@ -186,7 +186,7 @@ class SignInButtonState extends State<SignInButton> {
           context,
           MaterialPageRoute(
               builder: (context) =>
-                  Main(data: googleUser.photoUrl, name: googleUser.displayName)),
+                  Main(data: googleUser.photoUrl, name: googleUser.displayName, email: googleUser.email)),
         );
       } else if (response.statusCode == 500) {
         // 사용자 등록되어 있지 않으면 성별 입력 받기

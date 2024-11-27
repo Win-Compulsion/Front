@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:runwith/setting.dart';
 import 'main_screen.dart';
 import 'matching.dart';
+import 'package:http/http.dart' as http;
 
 class Matchingchoose extends StatefulWidget {
-  Matchingchoose({super.key});
+  final String? email;
+  Matchingchoose({super.key, this.email});
 
   @override
   _MatchingChooseState createState() => _MatchingChooseState();
@@ -348,25 +353,74 @@ class _MatchingChooseState extends State<Matchingchoose> {
     }
   }
 
-  void _showLoadingModal(int index) {
-    print(index);
-    // 여기에 백엔드 매칭 요청 보내기 추가, index 사용, 0은 1Km, 1은 3Km, 2는 5Km
+  // 백엔드 매칭 요청 메서드
+  Future<void> _sendMatchingRequest(int distanceIndex) async {
+    final uri = Uri.parse("http://10.0.2.2:8080/match/request"); // 백엔드 엔드포인트
+    final body = jsonEncode({'distance': _getDistanceForIndex(distanceIndex).toString(), 'email': widget.email});
+
+    try {
+      final response = await http.post(uri, headers: {"Content-Type": "application/json"}, body: body);
+
+      if (response.statusCode == 200) {
+        print("매칭 요청 성공: ${response.body}");
+        _showLoadingEndModal(distanceIndex); // 매칭 성공 후 완료 모달 표시
+      } else {
+        print("매칭 요청 실패: ${response.statusCode} - ${response.body}");
+        _showErrorModal();
+      }
+    } catch (e) {
+      print("매칭 요청 중 에러 발생: $e");
+      _showErrorModal();
+    }
+  }
+
+  int _getDistanceForIndex(int index) {
+    switch (index) {
+      case 0:
+        return 1;
+      case 1:
+        return 3;
+      case 2:
+        return 5;
+      default:
+        return 0;
+    }
+  }
+
+  void _showErrorModal() {
     showDialog(
       context: context,
-      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 없도록 설정
+      builder: (context) {
+        return AlertDialog(
+          title: Text('오류'),
+          content: Text('매칭 요청 중 문제가 발생했습니다. 다시 시도해주세요.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 로딩 모달 표시 메서드
+  void _showLoadingModal(int index) async {
+    // 백엔드 매칭 요청 먼저 처리
+    showDialog(
+      context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return  GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
-              _showLoadingEndModal(index);
-        },
-        child: AlertDialog(
+        return AlertDialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
           content: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
-              CircularProgressIndicator(), // 로딩 이미지를 표시하는 위젯
+              CircularProgressIndicator(),
               SizedBox(height: 50),
               Text(
                 '매칭할 상대를 찾고 있습니다.',
@@ -376,49 +430,56 @@ class _MatchingChooseState extends State<Matchingchoose> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
-
-          ]),
-        ),);
+            ],
+          ),
+        );
       },
     );
+
+    // 매칭 요청 실행
+    await _sendMatchingRequest(index);
   }
+  // 매칭 완료 모달 표시 및 페이지 전환
   void _showLoadingEndModal(int index) {
-    print(index);
-    // 여기에 백엔드 매칭 요청 보내기 추가, index 사용, 0은 1Km, 1은 3Km, 2는 5Km
+    // 로딩 모달 닫기
+    Navigator.of(context).pop();
+
+    // 완료 모달 띄우기
     showDialog(
       context: context,
-      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 없도록 설정
+      barrierDismissible: false, // 모달 외부를 클릭해도 닫히지 않도록 설정
       builder: (BuildContext context) {
-        return  GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Matching(distance: index,),
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                '상대를 찾았습니다. \n3초 후 대전이 시작됩니다!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-            );
-          },
-          child: AlertDialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            content: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
-                    '상대를 찾았습니다. \n3초 후 대전이 시작됩니다!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-
-                ]),
-          ),);
+            ],
+          ),
+        );
       },
     );
+
+    // 3초 후 Matching 페이지로 전환
+    Future.delayed(Duration(seconds: 3), () {
+      Navigator.of(context).pop(); // 완료 모달 닫기
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Matching(distance: index), // Matching 페이지로 이동
+        ),
+      );
+    });
   }
+
 }
