@@ -423,38 +423,53 @@ class _MatchingChooseState extends State<Matchingchoose> {
     }
   }
 
-// 상태 폴링 함수
+// 상태 폴링 함수 개선
   Future<void> _pollMatchingStatus(String queueId, int index) async {
     const pollingInterval = Duration(seconds: 5);
     const timeoutDuration = Duration(minutes: 2); // 2분 타임아웃
     final startTime = DateTime.now();
 
     while (true) {
+      // 타임아웃 확인
       if (DateTime.now().difference(startTime) > timeoutDuration) {
         throw Exception("매칭 시간이 초과되었습니다.");
       }
 
       try {
         final status = await _checkMatchingStatus(queueId);
+        print(status['status']);
 
         if (status['status'] == 'success') {
+          // 매칭 성공 시
           Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
           _showLoadingEndModal(index);
-          return;
+          return; // 폴링 종료
         } else if (status['status'] == 'failed') {
+          // 매칭 실패 시
           throw Exception("매칭에 실패했습니다.");
+        } else if (status['status'] == 'waiting') {
+          // 대기 상태면 계속 폴링
+          print("매칭 대기 중...");
+        } else {
+          // 다른 상태가 반환될 경우 예외 처리
+          throw Exception("알 수 없는 상태: ${status['status']}");
         }
       } catch (e) {
         print("상태 확인 오류: $e");
+        // 오류 처리 추가 (상태 확인 오류가 발생할 경우 다시 시도할 수 있도록)
       }
 
-      await Future.delayed(pollingInterval); // 대기 후 다시 상태 확인
+      // 대기 후 다시 상태 확인
+      await Future.delayed(pollingInterval);
     }
   }
 
   Future<Map<String, dynamic>> _checkMatchingStatus(String queueId) async {
-    final uri = Uri.parse('http://10.0.2.2:8080/match/status?queueId=$queueId');
+    final uri = Uri.parse('http://10.0.2.2:8080/match/status/$queueId');
     final response = await http.get(uri);
+
+    print('Server response: ${response.body}');
+
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
