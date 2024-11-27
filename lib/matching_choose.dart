@@ -1,16 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:runwith/setting.dart';
 import 'main_screen.dart';
 import 'matching.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Matchingchoose extends StatefulWidget {
-  final String? email;
+  String? email;
   Matchingchoose({super.key, this.email});
 
   @override
@@ -20,6 +16,7 @@ class Matchingchoose extends StatefulWidget {
 class _MatchingChooseState extends State<Matchingchoose> {
   final bool _isDarkTheme = isDarkTheme; // 다크 테마 여부를 나타내는 변수
   final PageController _pageController = PageController(viewportFraction: 0.7);
+  bool _isMatching = false; // 매칭 요청 진행 여부를 나타내는 변수
 
   @override
   Widget build(BuildContext context) {
@@ -212,55 +209,55 @@ class _MatchingChooseState extends State<Matchingchoose> {
                                 }
                                 return GestureDetector(
                                     onTap: () {
-                                  _showLoadingModal(index);
-                                },
-                                child:Transform.scale(
-                                  scale: Curves.easeOut.transform(value),
-                                  child: Container(
-                                    margin: EdgeInsets.symmetric(horizontal: 10),
-                                    width: 70,
-                                    height: 180,
-                                    decoration: ShapeDecoration(
-                                      color: getColorForIndex(index),
-                                      shape: RoundedRectangleBorder(
-                                        side: BorderSide(width: 1),
-                                        borderRadius: BorderRadius.circular(50),
+                                      _showLoadingModal(index);
+                                    },
+                                    child:Transform.scale(
+                                      scale: Curves.easeOut.transform(value),
+                                      child: Container(
+                                        margin: EdgeInsets.symmetric(horizontal: 10),
+                                        width: 70,
+                                        height: 180,
+                                        decoration: ShapeDecoration(
+                                          color: getColorForIndex(index),
+                                          shape: RoundedRectangleBorder(
+                                            side: BorderSide(width: 1),
+                                            borderRadius: BorderRadius.circular(50),
+                                          ),
+                                          shadows: const [
+                                            BoxShadow(
+                                              color: Color(0xFF000000),
+                                              blurRadius: 0,
+                                              offset: Offset(2, 2),
+                                              spreadRadius: 0,
+                                            )
+                                          ],
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              getTextForIndex(index),
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 35,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Text(
+                                              getDiscriptionIndex(index),
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18,
+
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+
                                       ),
-                                      shadows: const [
-                                        BoxShadow(
-                                          color: Color(0xFF000000),
-                                          blurRadius: 0,
-                                          offset: Offset(2, 2),
-                                          spreadRadius: 0,
-                                        )
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          getTextForIndex(index),
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 35,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        Text(
-                                          getDiscriptionIndex(index),
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 18,
-
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-
-                                  ),
-                                ));
+                                    ));
                               },
                             );
                           },
@@ -339,7 +336,7 @@ class _MatchingChooseState extends State<Matchingchoose> {
         return '';
     }
   }
-  
+
   String getDiscriptionIndex(int index) {
     switch (index) {
       case 0:
@@ -353,63 +350,13 @@ class _MatchingChooseState extends State<Matchingchoose> {
     }
   }
 
-  // 백엔드 매칭 요청 메서드
-  Future<void> _sendMatchingRequest(int distanceIndex) async {
-    final uri = Uri.parse("http://10.0.2.2:8080/match/request"); // 백엔드 엔드포인트
-    final body = jsonEncode({'distance': _getDistanceForIndex(distanceIndex).toString(), 'email': widget.email});
-
-    try {
-      final response = await http.post(uri, headers: {"Content-Type": "application/json"}, body: body);
-
-      if (response.statusCode == 200) {
-        print("매칭 요청 성공: ${response.body}");
-        _showLoadingEndModal(distanceIndex); // 매칭 성공 후 완료 모달 표시
-      } else {
-        print("매칭 요청 실패: ${response.statusCode} - ${response.body}");
-        _showErrorModal();
-      }
-    } catch (e) {
-      print("매칭 요청 중 에러 발생: $e");
-      _showErrorModal();
-    }
-  }
-
-  int _getDistanceForIndex(int index) {
-    switch (index) {
-      case 0:
-        return 1;
-      case 1:
-        return 3;
-      case 2:
-        return 5;
-      default:
-        return 0;
-    }
-  }
-
-  void _showErrorModal() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('오류'),
-          content: Text('매칭 요청 중 문제가 발생했습니다. 다시 시도해주세요.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // 로딩 모달 표시 메서드
   void _showLoadingModal(int index) async {
-    // 백엔드 매칭 요청 먼저 처리
+    if (_isMatching) return; // 이미 매칭 중이면 함수 종료
+
+    setState(() {
+      _isMatching = true; // 매칭 요청 시작
+    });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -436,50 +383,175 @@ class _MatchingChooseState extends State<Matchingchoose> {
       },
     );
 
-    // 매칭 요청 실행
-    await _sendMatchingRequest(index);
-  }
-  // 매칭 완료 모달 표시 및 페이지 전환
-  void _showLoadingEndModal(int index) {
-    // 로딩 모달 닫기
-    Navigator.of(context).pop();
+    try {
+      final response = await _sendMatchingRequest(index);
+      print(response['status']);
 
-    // 완료 모달 띄우기
+      if (response['status'] == 'waiting') {
+        // 서버가 대기 중 상태를 반환하면 폴링 시작
+        await _pollMatchingStatus(response['queueId'], index);
+      } else if (response['status'] == 'success') {
+        Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
+        _showLoadingEndModal(index);
+      } else {
+        throw Exception(response['status'] ?? '알 수 없는 오류가 발생했습니다.');
+      }
+    } catch (e) {
+      print("매칭 오류: $e");
+      Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
+      _showErrorModal("매칭에 실패했습니다: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isMatching = false; // 매칭 상태 초기화
+        });
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> _sendMatchingRequest(int index) async {
+    final uri = Uri.parse("http://10.0.2.2:8080/match/request"); // 백엔드 엔드포인트
+    final body = jsonEncode({'distance': _getDistanceForIndex(index).toString(), 'email': widget.email});
+
+    final headers = {'Content-Type': 'application/json'};
+    final response = await http.post(uri, body: body, headers: headers);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to request matching');
+    }
+  }
+
+// 상태 폴링 함수
+  Future<void> _pollMatchingStatus(String queueId, int index) async {
+    const pollingInterval = Duration(seconds: 5);
+    const timeoutDuration = Duration(minutes: 2); // 2분 타임아웃
+    final startTime = DateTime.now();
+
+    while (true) {
+      if (DateTime.now().difference(startTime) > timeoutDuration) {
+        throw Exception("매칭 시간이 초과되었습니다.");
+      }
+
+      try {
+        final status = await _checkMatchingStatus(queueId);
+
+        if (status['status'] == 'success') {
+          Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
+          _showLoadingEndModal(index);
+          return;
+        } else if (status['status'] == 'failed') {
+          throw Exception("매칭에 실패했습니다.");
+        }
+      } catch (e) {
+        print("상태 확인 오류: $e");
+      }
+
+      await Future.delayed(pollingInterval); // 대기 후 다시 상태 확인
+    }
+  }
+
+  Future<Map<String, dynamic>> _checkMatchingStatus(String queueId) async {
+    final uri = Uri.parse('http://10.0.2.2:8080/match/status?queueId=$queueId');
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to check matching status');
+    }
+  }
+
+  int _getDistanceForIndex(int index) {
+    switch (index) {
+      case 0:
+        return 1;
+      case 1:
+        return 3;
+      case 2:
+        return 5;
+      default:
+        return 0;
+    }
+  }
+
+  void _showErrorModal(String errorMessage) {
     showDialog(
       context: context,
-      barrierDismissible: false, // 모달 외부를 클릭해도 닫히지 않도록 설정
+      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 있도록 설정
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          content: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text(
-                '상대를 찾았습니다. \n3초 후 대전이 시작됩니다!',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+          backgroundColor: Colors.redAccent,
+          title: const Text(
+            '매칭 실패',
+            style: TextStyle(color: Colors.white),
           ),
+          content: Text(
+            errorMessage,
+            style: const TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 에러 모달 닫기
+              },
+              child: const Text('확인', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         );
       },
     );
-
-    // 3초 후 Matching 페이지로 전환
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.of(context).pop(); // 완료 모달 닫기
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Matching(distance: index), // Matching 페이지로 이동
-        ),
-      );
-    });
   }
 
+  void _showLoadingEndModal(int index) {
+    int secondsLeft = 3; // 카운트다운 시작 시간
+
+    // 카운트다운 모달 띄우기
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // 카운트다운 진행
+            Future.delayed(const Duration(seconds: 1), () {
+              if (secondsLeft > 1) {
+                setState(() {
+                  secondsLeft--;
+                });
+              } else {
+                Navigator.of(context).pop(); // 모달 닫기
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Matching(distance: index),
+                  ),
+                );
+              }
+            });
+
+            return AlertDialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              content: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '상대를 찾았습니다. \n${secondsLeft}초 후 대전이 시작됩니다!',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
