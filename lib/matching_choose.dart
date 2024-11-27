@@ -389,7 +389,7 @@ class _MatchingChooseState extends State<Matchingchoose> {
 
       if (response['status'] == 'waiting') {
         // 서버가 대기 중 상태를 반환하면 폴링 시작
-        await _pollMatchingStatus(response['queueId'], index);
+        await _pollMatchingStatus(response['queueId'].toString(), index);
       } else if (response['status'] == 'success') {
         Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
         _showLoadingEndModal(index);
