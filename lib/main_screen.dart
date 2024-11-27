@@ -14,7 +14,7 @@ class Main extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String dataConvert = data ?? "https://static-00.iconduck.com/assets.00/person-icon-2048x2048-wiaps1jt.png";
+    String dataConvert = data ?? "https://i.pinimg.com/736x/d6/64/b2/d664b27cca7eaf4d64c41622b5bb9b6c.jpg";
     String nameConvert = name ?? "닉네임";
     Size screenSize = MediaQuery.of(context).size;
     double screenWidth = screenSize.width;
@@ -263,47 +263,6 @@ class Main extends StatelessWidget {
                       ],
                     ),
                   ),),
-                Positioned(
-                  left: screenWidth / 2 - 69,
-                  top: 643,
-                  child: Container(
-                    width: 138,
-                    height: 49,
-                    decoration: ShapeDecoration(
-                      color: Color(0xFFD9D9D9),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 1),
-                        borderRadius: BorderRadius.circular(59),
-                      ),
-                      shadows: const [
-                        BoxShadow(
-                          color: Color(0xFF000000),
-                          blurRadius: 0,
-                          offset: Offset(2, 2),
-                          spreadRadius: 0,
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                    left: screenWidth / 2 - 27,
-                    top: 649,
-                    child: DefaultTextStyle(style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontFamily: 'Oswald',
-                      fontWeight: FontWeight.w100,
-                      height: 0,
-                    ),
-                      child:Text(
-                        'START',
-                        textAlign: TextAlign.center,
-
-                      ),
-                    )
-
-                ),
                 Positioned(
                   left: screenWidth / 2 - 160,
                   top: 40,
@@ -588,7 +547,7 @@ class Main extends StatelessWidget {
                                     width: 159,
                                     height: 14,
                                     decoration: ShapeDecoration(
-                                      color: Color(0xFF96FFDC),
+                                      color: Color(0xFFD9D9D9),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(24),
                                       ),
@@ -728,7 +687,7 @@ class Main extends StatelessWidget {
                                     width: 159,
                                     height: 14,
                                     decoration: ShapeDecoration(
-                                      color: Color(0xFF96FFDC),
+                                      color: Color(0xFF21E8A6),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(24),
                                       ),

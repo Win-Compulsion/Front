@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:runwith/setting.dart';
 import 'main_screen.dart';
 import 'matching.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Matchingchoose extends StatefulWidget {
   Matchingchoose({super.key});
@@ -15,6 +15,7 @@ class Matchingchoose extends StatefulWidget {
 class _MatchingChooseState extends State<Matchingchoose> {
   final bool _isDarkTheme = isDarkTheme; // 다크 테마 여부를 나타내는 변수
   final PageController _pageController = PageController(viewportFraction: 0.7);
+  bool _isMatching = false; // 매칭 요청 진행 여부를 나타내는 변수
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +335,7 @@ class _MatchingChooseState extends State<Matchingchoose> {
         return '';
     }
   }
-  
+
   String getDiscriptionIndex(int index) {
     switch (index) {
       case 0:
@@ -348,25 +349,24 @@ class _MatchingChooseState extends State<Matchingchoose> {
     }
   }
 
-  void _showLoadingModal(int index) {
-    print(index);
-    // 여기에 백엔드 매칭 요청 보내기 추가, index 사용, 0은 1Km, 1은 3Km, 2는 5Km
+  void _showLoadingModal(int index) async {
+    if (_isMatching) return; // 이미 매칭 중이면 함수 종료
+
+    setState(() {
+      _isMatching = true; // 매칭 요청 시작
+    });
+
     showDialog(
       context: context,
-      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 없도록 설정
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return  GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
-              _showLoadingEndModal(index);
-        },
-        child: AlertDialog(
+        return AlertDialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
           content: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
-              CircularProgressIndicator(), // 로딩 이미지를 표시하는 위젯
+              CircularProgressIndicator(),
               SizedBox(height: 50),
               Text(
                 '매칭할 상대를 찾고 있습니다.',
@@ -376,48 +376,165 @@ class _MatchingChooseState extends State<Matchingchoose> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
 
+    try {
+      final response = await _sendMatchingRequest(index);
 
-          ]),
-        ),);
+      if (response['status'] == 'waiting') {
+        // 서버가 대기 중 상태를 반환하면 폴링 시작
+        await _pollMatchingStatus(response['queueId'], index);
+      } else if (response['status'] == 'success') {
+        Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
+        _showLoadingEndModal(index);
+      } else {
+        throw Exception(response['error'] ?? '알 수 없는 오류가 발생했습니다.');
+      }
+    } catch (e) {
+      print("매칭 오류: $e");
+      Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
+      _showErrorModal("매칭에 실패했습니다: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isMatching = false; // 매칭 상태 초기화
+        });
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> _sendMatchingRequest(int index) async {
+    final uri = Uri.parse('https://example.com/api/match');
+    final body = {'userId': '12345', 'distance': index};
+    final headers = {'Content-Type': 'application/json'};
+    final response = await http.post(uri, body: jsonEncode(body), headers: headers);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to request matching');
+    }
+  }
+
+// 상태 폴링 함수
+  Future<void> _pollMatchingStatus(String queueId, int index) async {
+    const pollingInterval = Duration(seconds: 5);
+    const timeoutDuration = Duration(minutes: 2); // 2분 타임아웃
+    final startTime = DateTime.now();
+
+    while (true) {
+      if (DateTime.now().difference(startTime) > timeoutDuration) {
+        throw Exception("매칭 시간이 초과되었습니다.");
+      }
+
+      try {
+        final status = await _checkMatchingStatus(queueId);
+
+        if (status['status'] == 'success') {
+          Navigator.of(context, rootNavigator: true).pop(); // 로딩 모달 닫기
+          _showLoadingEndModal(index);
+          return;
+        } else if (status['status'] == 'failed') {
+          throw Exception("매칭에 실패했습니다.");
+        }
+      } catch (e) {
+        print("상태 확인 오류: $e");
+      }
+
+      await Future.delayed(pollingInterval); // 대기 후 다시 상태 확인
+    }
+  }
+
+  Future<Map<String, dynamic>> _checkMatchingStatus(String queueId) async {
+    final uri = Uri.parse('https://example.com/api/match/status?queueId=$queueId');
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to check matching status');
+    }
+  }
+
+  void _showErrorModal(String errorMessage) {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 있도록 설정
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.redAccent,
+          title: const Text(
+            '매칭 실패',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            errorMessage,
+            style: const TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 에러 모달 닫기
+              },
+              child: const Text('확인', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
       },
     );
   }
+
   void _showLoadingEndModal(int index) {
-    print(index);
-    // 여기에 백엔드 매칭 요청 보내기 추가, index 사용, 0은 1Km, 1은 3Km, 2는 5Km
+    int secondsLeft = 3; // 카운트다운 시작 시간
+
+    // 카운트다운 모달 띄우기
     showDialog(
       context: context,
-      barrierDismissible: true, // 사용자가 모달 외부를 터치하여 닫을 수 없도록 설정
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return  GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop(); // 배경 클릭 시 모달을 닫습니다.
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Matching(distance: index,),
-              ),
-            );
-          },
-          child: AlertDialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            content: Column(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // 카운트다운 진행
+            Future.delayed(const Duration(seconds: 1), () {
+              if (secondsLeft > 1) {
+                setState(() {
+                  secondsLeft--;
+                });
+              } else {
+                Navigator.of(context).pop(); // 모달 닫기
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Matching(distance: index),
+                  ),
+                );
+              }
+            });
+
+            return AlertDialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              content: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Text(
-                    '상대를 찾았습니다. \n3초 후 대전이 시작됩니다!',
-                    style: TextStyle(
+                    '상대를 찾았습니다. \n${secondsLeft}초 후 대전이 시작됩니다!',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-
-
-                ]),
-          ),);
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
